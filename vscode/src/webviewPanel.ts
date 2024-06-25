@@ -27,7 +27,7 @@ import { EventType, sendTelemetryEvent } from "./telemetry";
 import { getRandomGuid } from "./utils";
 
 const QSharpWebViewType = "qsharp-webview";
-const compilerRunTimeoutMs = 1000 * 60 * 5; // 5 minutes
+var compilerRunTimeoutMs = 1000 * 60 * 5; // 5 minutes
 
 export function registerWebViewCommands(context: ExtensionContext) {
   QSharpWebViewPanel.extensionUri = context.extensionUri;
@@ -55,7 +55,7 @@ export function registerWebViewCommands(context: ExtensionContext) {
       if (!program.success) {
         throw new Error(program.errorMsg);
       }
-      const { sources, languageFeatures, projectName } = program.programConfig;
+      const { sources, languageFeatures, projectName, estimatorTimeout } = program.programConfig;
 
       const qubitType = await window.showQuickPick(
         [
@@ -156,6 +156,20 @@ export function registerWebViewCommands(context: ExtensionContext) {
         return;
       }
 
+      const params = qubitType.map((item) => ({
+        ...item.params,
+        errorBudget: parseFloat(errorBudget),
+        estimateType: "frontier",
+      }));
+
+      compilerRunTimeoutMs = await window.showInputBox({
+        title: "Estimator timeout",
+        value: `${estimatorTimeout}`,
+      });
+      if(!estimatorTimeout) {
+        return;
+      }
+
       let runName = await window.showInputBox({
         title: "Friendly name for run",
         value: `${projectName}`,
@@ -163,12 +177,6 @@ export function registerWebViewCommands(context: ExtensionContext) {
       if (!runName) {
         return;
       }
-
-      const params = qubitType.map((item) => ({
-        ...item.params,
-        errorBudget: parseFloat(errorBudget),
-        estimateType: "frontier",
-      }));
 
       log.info("RE params", params);
 

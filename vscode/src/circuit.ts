@@ -19,7 +19,7 @@ import { EventType, UserFlowStatus, sendTelemetryEvent } from "./telemetry";
 import { getRandomGuid } from "./utils";
 import { sendMessageToPanel } from "./webviewPanel";
 
-const compilerRunTimeoutMs = 1000 * 60 * 5; // 5 minutes
+var compilerRunTimeoutMs = 1000 * 60 * 5; // 5 minutes
 
 /**
  * Input parameters for generating a circuit.
@@ -60,6 +60,9 @@ export async function showCircuitCommand(
   if (!program.success) {
     throw new Error(program.errorMsg);
   }
+
+  const { estimatorTimeout } = program.programConfig;
+  compilerRunTimeoutMs = estimatorTimeout
 
   sendTelemetryEvent(
     EventType.CircuitStart,
@@ -210,7 +213,7 @@ async function getCircuitOrErrorWithTimeout(
     extensionUri,
     "./out/compilerWorker.js",
   ).toString();
-
+  
   const worker = getCompilerWorker(compilerWorkerScriptPath);
   const compilerTimeout = setTimeout(() => {
     timeout = true;

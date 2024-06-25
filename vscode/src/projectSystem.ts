@@ -205,6 +205,7 @@ export type ProjectConfig = {
    * Friendly name for the project, based on the name of the Q# document or project directory
    */
   projectName: string;
+  estimatorTimeout: number;
   sources: [string, string][];
   languageFeatures: string[];
   lints: {
@@ -238,6 +239,7 @@ export async function loadProject(
 
     return {
       projectName: Utils.basename(documentUri),
+      estimatorTimeout: 300000,
       sources: [[documentUri.toString(), file.getText()]],
       languageFeatures: [],
       lints: [],
@@ -252,6 +254,7 @@ export async function loadProject(
   return {
     projectName:
       Utils.basename(URI.parse(manifest.manifestDirectory)) || "Q# Project",
+    estimatorTimeout: 300000,
     sources: project,
     languageFeatures: manifest.languageFeatures || [],
     lints: manifest.lints,
